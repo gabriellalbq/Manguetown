@@ -56,7 +56,7 @@ void loop () {
 
 void horadabatalha () {
     batalhador_um = random(1, 4);
-    batalhador_dois = random(1,4);
+    batalhador_dois = random(1, 4);
     batalhaAtual = batalhador_um+batalhador_dois
     if (!batalhas.contains(batalhaAtual)) {
         numeros.push_back(batalhaAtual);
