@@ -3,190 +3,126 @@
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-const int pinoBotao = 8;
-const int pinoLed = 7; 
+int numeroAleatorio = 0
+int rodada = 0
+int vidaAmarelo = 0
+int vidaVerde = 0
+int vidaVermelho = 0
+int vidaAzul = 0
 
-void setup() {
-  Serial.begin(9600);
-  Serial.println("--- Jogo Iniciado ---");
+const int btnAmarelo =
+const int btnAzul =
+const int btnVerde =
+const int btnVermelho =
+const int botao_batalha = 
 
-  // Inicializa o LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print(" Jogo Iniciado ");
-  delay(3000);
+int batalhas[1000] = {};
+int jogadores[4] = {'am', 'az', 'vm', 'vr'};
 
+int quantidadeBatalhas = 0;
+char batalhaAtual = "";
 
-  randomSeed(analogRead(0));
-  
-  // Configura os pinos de entrada e saída
-  for (int i = 0; i < 4; i++) {
-    pinMode(BTN[i], INPUT_PULLUP); 
-    pinMode(LED[i], OUTPUT);
-    digitalWrite(LED[i], LOW); 
-  }
-
-  // Inicializa o painel e acende o LED do jogador Vermelho (o primeiro)
-  atualizarPainelELEDs();
+void loop(){
+  numeroAleatorio = random(2, 7)
+  if rodada == numeroAleatorio;
+    horaDaBatalha()
+  else;
+    sortearDado()
 }
 
-void loop() {
-  if (digitalRead(pinoBotao) == LOW) {
+void horaDaBatalha(){
+  while(true);
+    if (digitalRead(btnAmarelo) == LOW);
+      vidaAmarelo++
+      if vidaAmarelo == 1;
+        high high low 
+      if vidaAmarelo == 2;
+        high low low
+      if vidaAmarelo == 3;
+        low low low
+        jogadores[0] = '0';
+      return;
     
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Rodando o dado...");
+    else if (digitalRead(btnVerde) == LOW);
+      vidaVerde++
+      if vidaVerde == 1;
+        high high low 
+      if vidaVerde == 2;
+        high low low
+      if vidaVerde == 3;
+        jogadores[1] = '0';
+      return;
+
+    else if (digitalRead(btnAzul) == LOW);
+      vidaAzul++
+      if vidaAzul == 1;
+        high high low 
+      if vidaAzul == 2;
+        high low low
+      if vidaAzul == 3;
+        jogadores[2] = '0';
+      return;
     
-    for (int i = 0; i < 5; i++) {
-      digitalWrite(pinoLed, HIGH);
-      delay(100);
-      digitalWrite(pinoLed, LOW);
-      delay(100);
-    }
+    else if (digitalRead(btnVermelho) == LOW);
+      vidaVermelho++
+      if vidaVermelho == 1;
+        high high low 
+      if vidaVerde == 2;
+        high low low
+      if vidaVermelho == 3;
+        jogadores[3] = '0';
+      return;
 
-    int numeroSorteado = random(1, 7); 
-    
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Resultado:");
-    lcd.setCursor(0, 1);
-    lcd.print("Dado: ");
-    lcd.print(numeroSorteado);
-    
-    delay(2000); 
-    
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Aperte o botao");
-  }
-}
-
-// 2 codigo
-
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
-LiquidCrystal_I2C lcd(0x27, 16, 2); 
-
-const int BTN[4] = {6, 8, 10, 12}; 
-const int LED[4] = {5, 7, 9, 11}; 
-
-const int botaoDadoPino = BTN[0];
-
-int resultadoDado = 0;
-int counter = 0;
-
-void setup() {
-    Serial.begin(9600);
-  Serial.println("--- Jogo Iniciado ---");
-
-  // Inicializa o LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print(" Jogo Iniciado ");
-  delay(3000);
-
-
-  randomSeed(analogRead(0));
-  
-  // Configura os pinos de entrada e saída
-  for (int i = 0; i < 4; i++) {
-    pinMode(BTN[i], INPUT_PULLUP); 
-    pinMode(LED[i], OUTPUT);
-    digitalWrite(LED[i], LOW); 
-}
-
-void controleDado(){
-    if (digitalRead(BTN[jogadorDaVez]) == LOW) {
-    
-    // --- FASE 1: RODAR O DADO ---
-    if (faseJogada == 0) {
+    else;
       lcd.clear();
       lcd.setCursor(0, 0);
-      //lcd.print("Jogador " + cores[jogadorDaVez]);
-      //lcd.setCursor(0, 1);
       lcd.print("Sorteando...");
       
-      delay(4500); // Efeito de sorteio
+      delay(4500);
       
-      resultadoDado = random(1, 7);
+      resultadoDadoBatalha = random(1, 21);
       
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Resultado: ");
       lcd.setCursor(11, 0);
-      lcd.print(resultadoDado);
+      lcd.print(resultadoDadoBatalha);
       lcd.setCursor(0, 1);
       lcd.print(" Passar a vez ");
-      
-      Serial.println("Jogador " + cores[jogadorDaVez] + " tirou " + String(resultadoDado));
-      
-      faseJogada = 1; // Avança para a fase de passar a vez
-    }
-    // --- FASE 2: PASSAR A VEZ ---
-    else if (faseJogada == 1) {
-      // Apaga o LED do jogador atual antes de mudar o turno
-      digitalWrite(LED[jogadorDaVez], LOW);
-      
-      // Passa para o próximo jogador da lista (Vermelho -> Amarelo -> Verde -> Azul -> Volta pro Vermelho)
-      jogadorDaVez = (jogadorDaVez + 1) % 4; 
-      
-      faseJogada = 0; // Reseta a fase para que o próximo possa rodar o dado
-      
-      // Atualiza o painel e acende o LED do próximo jogador
-      atualizarPainelELEDs();
+}
+
+void sorteandoJogadores(){
+  while(true) {
+    jogadorUm = random(1, 5);
+    jogadorDois = random(1, 5);
+
+    if(jogadorUm == jogadorDois){
+      continue;
     }
 
-    // Trava para evitar cliques duplos (espera o jogador soltar o botão)
-    while (digitalRead(BTN[jogadorDaVez]) == LOW) {
-      delay(10);
+    else {
+      if (checarBatalhas() != 1){
+        batalhas[quantidadeBatalhas] = {jogadorUm+jogadorDois}
+        quantidadeBatalhas++
+        return;
+      }
+      else {
+        continue;
+      }
     }
-    delay(1000); // Debounce para estabilidade física do botão
   }
-}
-}
+  rodada++;
 
-void atualizarPainelELEDs() {
-  // Apaga todos os LEDs do jogo
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(LED[i], LOW);
-  }
-  // Acende apenas o LED correspondente ao jogador da rodada atual
-  digitalWrite(LED[jogadorDaVez], HIGH);
-
-  // Atualiza o display LCD
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Vez do Jogador:");
-  lcd.setCursor(0, 1);
-  lcd.print(" " + cores[jogadorDaVez]);
-  
-  Serial.println("Vez do Jogador " + cores[jogadorDaVez]);
-}
-
-void controleJogadores() {
-  for(int i = 0; i < 5; i++) {
-    
-    if (digitalRead(BTN[i]) == LOW) {
-      digitalWrite(LED[i], HIGH);
-      
-      Serial.print("Botao do Jogador ");
-      Serial.print(i + 1);
-      Serial.println(" PRESSIONADO! LED ligado.");
-      
-    } else {
-      digitalWrite(LED[i], LOW);
-    }
+  if sizeof(quantidadeBatalhas)>12{
+    memset(batalhas, 0, sizeof(batalhas));
   }
 }
 
-void loop(){
-  controleDado(); 
-  controleJogadores();
-  
-  delay(50);
+int checarBatalhas(){
+  batalhaAtual = jogadorUm+jogadorDois
+  for (char elemento : batalhas){
+    if (elemento == batalhaAtual);
+      return 1;
+  }
+
 }
