@@ -65,62 +65,93 @@ int resultadoDado = 0;
 int counter = 0;
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("--- Sistema Iniciado: Dado + LEDs dos Jogadores ---");
+    Serial.begin(9600);
+  Serial.println("--- Jogo Iniciado ---");
 
+  // Inicializa o LCD
   lcd.init();
   lcd.backlight();
-  
+  lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Dado Eletronico");
-  lcd.setCursor(0, 1);
-  lcd.print("Aperte o botao");
+  lcd.print(" Jogo Iniciado ");
+  delay(3000);
 
-  randomSeed(analogRead(0)); 
 
+  randomSeed(analogRead(0));
+  
+  // Configura os pinos de entrada e saída
   for (int i = 0; i < 4; i++) {
     pinMode(BTN[i], INPUT_PULLUP); 
     pinMode(LED[i], OUTPUT);
-    digitalWrite(LED[i], LOW);
-  }
+    digitalWrite(LED[i], LOW); 
 }
 
 void controleDado(){
-  if (digitalRead(botaoDadoPino) == LOW){ 
-    counter++; 
-
-    if (counter == 1){
+    if (digitalRead(BTN[jogadorDaVez]) == LOW) {
+    
+    // --- FASE 1: RODAR O DADO ---
+    if (faseJogada == 0) {
       lcd.clear();
+      lcd.setCursor(0, 0);
+      //lcd.print("Jogador " + cores[jogadorDaVez]);
+      //lcd.setCursor(0, 1);
       lcd.print("Sorteando...");
-          
-      delay(2000);
-          
+      
+      delay(4500); // Efeito de sorteio
+      
       resultadoDado = random(1, 7);
-          
+      
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Resultado: ");
+      lcd.setCursor(11, 0);
       lcd.print(resultadoDado);
-    }
-    else if (counter == 2){
       lcd.setCursor(0, 1);
-      lcd.print("  Passar a vez  ");
-    }
-    else if (counter == 3){
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print(" Clique para");
-      lcd.setCursor(0, 1);
-      lcd.print(" rodar o dado");
+      lcd.print(" Passar a vez ");
       
-      counter = 0; 
+      Serial.println("Jogador " + cores[jogadorDaVez] + " tirou " + String(resultadoDado));
+      
+      faseJogada = 1; // Avança para a fase de passar a vez
+    }
+    // --- FASE 2: PASSAR A VEZ ---
+    else if (faseJogada == 1) {
+      // Apaga o LED do jogador atual antes de mudar o turno
+      digitalWrite(LED[jogadorDaVez], LOW);
+      
+      // Passa para o próximo jogador da lista (Vermelho -> Amarelo -> Verde -> Azul -> Volta pro Vermelho)
+      jogadorDaVez = (jogadorDaVez + 1) % 4; 
+      
+      faseJogada = 0; // Reseta a fase para que o próximo possa rodar o dado
+      
+      // Atualiza o painel e acende o LED do próximo jogador
+      atualizarPainelELEDs();
     }
 
-    while (digitalRead(botaoDadoPino) == LOW) {
-      delay(10); 
+    // Trava para evitar cliques duplos (espera o jogador soltar o botão)
+    while (digitalRead(BTN[jogadorDaVez]) == LOW) {
+      delay(10);
     }
-    delay(50);
+    delay(1000); // Debounce para estabilidade física do botão
   }
+}
+}
+
+void atualizarPainelELEDs() {
+  // Apaga todos os LEDs do jogo
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(LED[i], LOW);
+  }
+  // Acende apenas o LED correspondente ao jogador da rodada atual
+  digitalWrite(LED[jogadorDaVez], HIGH);
+
+  // Atualiza o display LCD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Vez do Jogador:");
+  lcd.setCursor(0, 1);
+  lcd.print(" " + cores[jogadorDaVez]);
+  
+  Serial.println("Vez do Jogador " + cores[jogadorDaVez]);
 }
 
 void controleJogadores() {
