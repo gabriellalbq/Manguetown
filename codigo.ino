@@ -7,15 +7,29 @@ const int pinoBotao = 8;
 const int pinoLed = 7; 
 
 void setup() {
-  pinMode(pinoBotao, INPUT_PULLUP);
-  pinMode(pinoLed, OUTPUT);
-  
+  Serial.begin(9600);
+  Serial.println("--- Jogo Iniciado ---");
+
+  // Inicializa o LCD
   lcd.init();
   lcd.backlight();
-
+  lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Aperte o botao");
-  // ver o acento!!!
+  lcd.print(" Jogo Iniciado ");
+  delay(3000);
+
+
+  randomSeed(analogRead(0));
+  
+  // Configura os pinos de entrada e saída
+  for (int i = 0; i < 4; i++) {
+    pinMode(BTN[i], INPUT_PULLUP); 
+    pinMode(LED[i], OUTPUT);
+    digitalWrite(LED[i], LOW); 
+  }
+
+  // Inicializa o painel e acende o LED do jogador Vermelho (o primeiro)
+  atualizarPainelELEDs();
 }
 
 void loop() {
