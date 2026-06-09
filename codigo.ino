@@ -1,147 +1,200 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-const int pinoBotao = 8;
-const int pinoLed = 7; 
-
-void setup() {
-  pinMode(pinoBotao, INPUT_PULLUP);
-  pinMode(pinoLed, OUTPUT);
-  
-  lcd.init();
-  lcd.backlight();
-
-  lcd.setCursor(0, 0);
-  lcd.print("Aperte o botao");
-  // ver o acento!!!
-}
-
-void loop() {
-  if (digitalRead(pinoBotao) == LOW) {
-    
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Rodando o dado...");
-    
-    for (int i = 0; i < 5; i++) {
-      digitalWrite(pinoLed, HIGH);
-      delay(100);
-      digitalWrite(pinoLed, LOW);
-      delay(100);
-    }
-
-    int numeroSorteado = random(1, 7); 
-    
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Resultado:");
-    lcd.setCursor(0, 1);
-    lcd.print("Dado: ");
-    lcd.print(numeroSorteado);
-    
-    delay(2000); 
-    
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Aperte o botao");
-  }
-}
-
-// 2 codigo
-
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
 LiquidCrystal_I2C lcd(0x27, 16, 2); 
 
-const int BTN[4] = {6, 8, 10, 12}; 
-const int LED[4] = {5, 7, 9, 11}; 
+const int BTN[4] = {4, 10, 8, 12};
+const int LED[4] = {5, 9, 7, 11};  
 
-const int botaoDadoPino = BTN[0];
+const int BTN_BATALHA = 2; 
 
+const String cores[4] = {"Vermelho", "Amarelo", "Verde", "Azul"};
+
+int jogadorDaVez = 0;  
+int faseJogada = 0;    
 int resultadoDado = 0;
-int counter = 0;
+
+int vidas[4] = {3, 3, 3, 3}; 
+int contadorJogadas = 0;     
+int limiteJogadasBatalha = 0;
+
+void atualizarPainelELEDs();
+void executarBatalhaAleatoria();
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("--- Sistema Iniciado: Dado + LEDs dos Jogadores ---");
+  Serial.println("--- Jogo Iniciado ---");
 
   lcd.init();
   lcd.backlight();
-  
+  lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Dado Eletronico");
-  lcd.setCursor(0, 1);
-  lcd.print("Aperte o botao");
+  lcd.print(" Jogo Iniciado ");
+  delay(2000);
 
-  randomSeed(analogRead(0)); 
-
+  randomSeed(analogRead(0));
+  
   for (int i = 0; i < 4; i++) {
     pinMode(BTN[i], INPUT_PULLUP); 
     pinMode(LED[i], OUTPUT);
-    digitalWrite(LED[i], LOW);
+    digitalWrite(LED[i], LOW); 
   }
+
+  pinMode(BTN_BATALHA, INPUT_PULLUP);
+
+  limiteJogadasBatalha = random(3, 7); 
+
+  atualizarPainelELEDs();
 }
 
-void controleDado(){
-  if (digitalRead(botaoDadoPino) == LOW){ 
-    counter++; 
+void loop() {
+  int jogadorAtual = jogadorDaVez;
 
-    if (counter == 1){
+  if (digitalRead(BTN[jogadorAtual]) == LOW) {
+    
+    if (faseJogada == 0) {
       lcd.clear();
+      lcd.setCursor(0, 0);
       lcd.print("Sorteando...");
-          
-      delay(2000);
-          
-      resultadoDado = random(1, 7);
-          
+      delay(2000); 
+      
+      resultadoDado = random(1, 7); 
+      contadorJogadas++; 
+      
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Resultado: ");
+      lcd.setCursor(12, 0);
       lcd.print(resultadoDado);
-    }
-    else if (counter == 2){
       lcd.setCursor(0, 1);
-      lcd.print("  Passar a vez  ");
-    }
-    else if (counter == 3){
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print(" Clique para");
-      lcd.setCursor(0, 1);
-      lcd.print(" rodar o dado");
+      lcd.print("  Passar a vez ");
       
-      counter = 0; 
+      Serial.println("Jogador " + cores[jogadorAtual] + " tirou " + String(resultadoDado));
+      faseJogada = 1; 
+    }
+    else if (faseJogada == 1) {
+      if (contadorJogadas >= limiteJogadasBatalha) {
+        executarBatalhaAleatoria();
+        contadorJogadas = 0; 
+        limiteJogadasBatalha = random(3, 7); 
+      }
+
+      digitalWrite(LED[jogadorDaVez], LOW);
+      
+      do {
+        jogadorDaVez = (jogadorDaVez + 1) % 4; 
+      } while (vidas[jogadorDaVez] <= 0); 
+      
+      faseJogada = 0; 
+      atualizarPainelELEDs();
     }
 
-    while (digitalRead(botaoDadoPino) == LOW) {
-      delay(10); 
+    while (digitalRead(BTN[jogadorAtual]) == LOW) {
+      delay(10);
     }
-    delay(50);
+    delay(200); 
   }
 }
 
-void controleJogadores() {
-  for(int i = 0; i < 5; i++) {
+void executarBatalhaAleatoria() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(" !! HORA DA !!");
+  lcd.setCursor(0, 1);
+  lcd.print(" !! BATALHA !!");
+  delay(2000);
+
+  int p1 = -1;
+  int p2 = -1;
+
+  do { p1 = random(0, 4); } while (vidas[p1] <= 0);
+  do { p2 = random(0, 4); } while (vidas[p2] <= 0 || p2 == p1);
+
+  for (int i = 0; i < 4; i++) { digitalWrite(LED[i], LOW); }
+  digitalWrite(LED[p1], HIGH);
+  digitalWrite(LED[p2], HIGH);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(cores[p1].substring(0,3) + " VS " + cores[p2].substring(0,3));
+  lcd.setCursor(0, 1);
+  lcd.print("Pausar no Batalha");
+  delay(2000);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("D20 RODANDO:");
+
+  int valorD20 = 1;
+
+  while (digitalRead(BTN_BATALHA) == HIGH) {
+    valorD20 = random(1, 21); 
     
-    if (digitalRead(BTN[i]) == LOW) {
-      digitalWrite(LED[i], HIGH);
-      
-      Serial.print("Botao do Jogador ");
-      Serial.print(i + 1);
-      Serial.println(" PRESSIONADO! LED ligado.");
-      
-    } else {
-      digitalWrite(LED[i], LOW);
+    lcd.setCursor(4, 1);
+    lcd.print("D20: ");
+    if (valorD20 < 10) lcd.print(" "); 
+    lcd.print(valorD20);
+    
+    delay(50); 
+  }
+
+  delay(200);
+  while (digitalRead(BTN_BATALHA) == LOW) { delay(10); }
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("D20 travado: " + String(valorD20));
+  lcd.setCursor(0, 1);
+  lcd.print("Quem perdeu?...");
+
+  int perdedor = -1;
+
+  while (true) {
+    if (digitalRead(BTN[p1]) == LOW) {
+      perdedor = p1;
+      break;
     }
+    if (digitalRead(BTN[p2]) == LOW) {
+      perdedor = p2;
+      break;
+    }
+    delay(10);
+  }
+
+  vidas[perdedor]--;
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(cores[perdedor] + " perdeu!");
+  lcd.setCursor(0, 1);
+  lcd.print("Vida: -1");
+  Serial.println(cores[perdedor] + " assumiu a derrota no D20 valor " + String(valorD20) + " e perdeu 1 vida.");
+  delay(4000);
+
+  while (digitalRead(BTN[perdedor]) == LOW) {
+    delay(10);
+  }
+  delay(200); 
+
+  if (vidas[perdedor] <= 0) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(cores[perdedor]);
+    lcd.setCursor(0, 1);
+    lcd.print("ELIMINADO!"); 
+    delay(3000);
   }
 }
 
-void loop(){
-  controleDado(); 
-  controleJogadores();
-  
-  delay(50);
+void atualizarPainelELEDs() {
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(LED[i], LOW);
+  }
+  digitalWrite(LED[jogadorDaVez], HIGH);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Vez: " + cores[jogadorDaVez]);
+  lcd.setCursor(0, 1);
+  lcd.print("Vidas:" + String(vidas[jogadorDaVez]));
 }
